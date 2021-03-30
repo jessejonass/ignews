@@ -30,6 +30,12 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser.
 
+### Tools used: 
+
+Typescript;
+NextJS;
+SASS;
+Stripe - payment;
 
 ## Learn More
 

@@ -1,4 +1,5 @@
-import { GetServerSideProps } from 'next';
+import { GetStaticProps } from 'next';
+// import { GetServerSideProps } from 'next';
 
 import Head from 'next/head';
 import { SubscribeButton } from '../components/SubscribeButton';
@@ -39,8 +40,7 @@ export default function Home({ product }: HomeProps) {
   )
 }
 
-// importar tipagem para essa function
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getStaticProps: GetStaticProps = async () => {
   // todo codigo colocado aqui é executado no servidor node do next
 
   const price = await stripe.prices.retrieve('price_1IagBhKMEMKyzCEgCtXsf6VL', {
@@ -58,6 +58,30 @@ export const getServerSideProps: GetServerSideProps = async () => {
   return {
     props: {
       product,
-    }
+    },
+    revalidate: 60 * 60 * 24, // a cada 24 horas
   }
 }
+
+// importar tipagem para essa função
+// export const getServerSideProps: GetServerSideProps = async () => {
+//   // todo codigo colocado aqui é executado no servidor node do next
+
+//   const price = await stripe.prices.retrieve('price_1IagBhKMEMKyzCEgCtXsf6VL', {
+//     expand: ['product'], // usado para ver info do produto
+//   });
+
+//   const product = {
+//     priceId: price.id,
+//     amount: new Intl.NumberFormat('en-us', {
+//       style: 'currency',
+//       currency: 'USD',
+//     }).format( (price.unit_amount / 100)), // centavos
+//   };
+
+//   return {
+//     props: {
+//       product,
+//     }
+//   }
+// }
