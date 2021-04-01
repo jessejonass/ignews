@@ -36,7 +36,7 @@ export default NextAuth({
               q.Collection('users'),
               { data: { email } }
             ),
-            // q.Update
+            // q.Update // se eu quiser atualizar o usuário
             q.Get(
               q.Match(
                 q.Index('user_by_email'),
