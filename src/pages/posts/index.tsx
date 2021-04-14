@@ -2,9 +2,21 @@ import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import { getPrismicClient } from '../../services/prismic';
 import Prismic from '@prismicio/client';
+import { RichText } from 'prismic-dom';
 import styles from './styles.module.scss';
 
-export default function Posts() {
+type Post = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  updatedAt: string;
+}
+
+interface PostProps {
+  posts: Post[];
+}
+
+export default function Posts({ posts }: PostProps) {
   return (
     <>
       <Head>
@@ -13,29 +25,13 @@ export default function Posts() {
 
       <main className={styles.container}>
         <div className={styles.posts}>
-          <a href="#">
-            <time>14 de abril de 2021</time>
-            <strong>Título de teste</strong>
-            <p>
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Blanditiis nisi tempora assumenda totam quisquam?
-            </p>
-          </a>
-
-          <a href="#">
-            <time>14 de abril de 2021</time>
-            <strong>Título de teste</strong>
-            <p>
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Blanditiis nisi tempora assumenda totam quisquam?
-            </p>
-          </a>
-
-          <a href="#">
-            <time>14 de abril de 2021</time>
-            <strong>Título de teste</strong>
-            <p>
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Blanditiis nisi tempora assumenda totam quisquam?
-            </p>
-          </a>
+          { posts.map(post => (
+            <a href="#" key={post.slug}>
+              <time>{post.updatedAt}</time>
+              <strong>{post.title}</strong>
+              <p>{post.excerpt}</p>
+            </a>
+          )) }
         </div>
       </main>
     </>
@@ -52,13 +48,29 @@ export const getStaticProps: GetStaticProps = async () => {
     Prismic.predicates.at('document.type', 'publication')
   ], {
     // quais dados eu quero dessa pub
-    fetch: ['publication.title', 'publication.content'],
+    fetch: ['publication.title', 'publication.contents'],
     pageSize: 100,
   });
 
-  // console.log(JSON.stringify(response, null, 2));
+  // prismic-dom - converte formatos do prismic para html
+  const posts = response.results.map(post => {
+    return {
+      slug: post.uid,
+      title: RichText.asText(post.data.title), // converte texto para html,
+      
+      excerpt: post.data.contents.find(content => {
+        content.type === 'paragraph'
+      })?.text ?? '', // buscar primeiro paragrafo || ''
+
+      updatedAt: new Date(post.last_publication_date).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }),
+    };
+  });
 
   return {
-    props: {}
+    props: { posts }
   }
 }
