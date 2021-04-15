@@ -1,26 +1,27 @@
 import { GetStaticProps } from 'next';
-import Head from 'next/head';
-import { getPrismicClient } from '../../services/prismic';
-import Prismic from '@prismicio/client';
 import { RichText } from 'prismic-dom';
+import Head from 'next/head';
+import Prismic from '@prismicio/client';
+
+import { getPrismicClient } from '../../services/prismic';
 import styles from './styles.module.scss';
 
-type Post = {
+interface Post {
   slug: string;
   title: string;
   excerpt: string;
   updatedAt: string;
 }
 
-interface PostProps {
+interface PostsProps {
   posts: Post[];
 }
 
-export default function Posts({ posts }: PostProps) {
+export default function Posts({ posts }: PostsProps) {
   return (
     <>
       <Head>
-        <title>Posts | Ignews</title>
+        <title>Posts | ig.news</title>
       </Head>
 
       <main className={styles.container}>
@@ -42,12 +43,12 @@ export default function Posts({ posts }: PostProps) {
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient();
 
-  // prismic docs > query the API
+  // prismic docs > query the API: doc de queries
   const response = await prismic.query([
-    // tipo Publication
+    // tipo Publication: predicate é uma query
     Prismic.predicates.at('document.type', 'publication')
   ], {
-    // quais dados eu quero dessa pub
+    // quais dados eu quero dessa pub?
     fetch: ['publication.title', 'publication.contents'],
     pageSize: 100,
   });
@@ -56,11 +57,11 @@ export const getStaticProps: GetStaticProps = async () => {
   const posts = response.results.map(post => {
     return {
       slug: post.uid,
-      title: RichText.asText(post.data.title), // converte texto para html,
+      title: RichText.asText(post.data.title), // converte texto Prismic para html,
       
-      excerpt: post.data.contents.find(content => {
-        content.type === 'paragraph'
-      })?.text ?? '', // buscar primeiro paragrafo || ''
+      excerpt: post.data.contents.find(content => (
+        content.type == 'paragraph'
+      ))?.text ?? '', // buscar primeiro paragrafo || ''
 
       updatedAt: new Date(post.last_publication_date).toLocaleDateString('pt-BR', {
         day: '2-digit',
