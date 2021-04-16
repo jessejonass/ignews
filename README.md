@@ -1,10 +1,23 @@
 *Application developed during Rocketseat's Ignite Bootcamp, on the ReactJS track*
 
-:purple_heart: Under development :) :purple_heart: 
+## Developed with
 
-Application developed during Rocketseat's Ignite Bootcamp, on the ReactJS track
+- NextJS
+- SASS
+- TypeScript
+- STRIPE for payments: https://stripe.com/br
+- Webhooks
+- FaunaDB: https://fauna.com/
 
-## Getting Started
+### Screenshots
+
+*Home screen*
+![img1](https://user-images.githubusercontent.com/29109974/115020418-f18d9880-9e90-11eb-89a1-11d040f05d50.jpg)
+
+*Post screen*
+![img2](https://user-images.githubusercontent.com/29109974/115020424-f3575c00-9e90-11eb-9638-9b4575db7e08.jpg)
+
+### Getting Started
 
 Clone repository:
 
