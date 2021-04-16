@@ -8,6 +8,7 @@
 - STRIPE for payments: https://stripe.com/br
 - Webhooks
 - FaunaDB: https://fauna.com/
+- OAuth
 
 ### Screenshots
 
