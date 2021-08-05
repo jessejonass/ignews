@@ -1,10 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { Readable } from 'stream';
 import Stripe from "stripe";
 import { stripe } from "../../services/stripe";
-import { saveSubscription } from "./_lib/manageSubscription";
+import { NextApiRequest, NextApiResponse } from "next";
+import { Readable } from 'stream';
+import { saveSubscription } from "./_lib/manageSubscripition";
 
-// converte Readable em string
 async function buffer(readable: Readable) {
   const chunks = [];
 
@@ -25,22 +24,21 @@ export const config = {
 
 const relevantEvents = new Set([
   'checkout.session.completed',
-  'customer.subscriptions.created',
-  'customer.subscriptions.updated',
-  'customer.subscriptions.deleted',
+  'customer.subscription.updated',
+  'customer.subscription.deleted',
 ]);
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => { // eslint-disable-line
   if (req.method === 'POST') {
     const buf = await buffer(req);
     const secret = req.headers['stripe-signature'];
-    
+
     let event: Stripe.Event;
 
     try {
       event = stripe.webhooks.constructEvent(buf, secret, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
-      return res.status(400).send(`webhook error: ${err.message}`);
+      return res.status(400).send(`Webhook error: ${err.message}`);
     }
 
     const { type } = event;
@@ -52,33 +50,33 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           case 'customer.subscription.updated':
           case 'customer.subscription.deleted':
             const subscription = event.data.object as Stripe.Subscription;
-            
+
             await saveSubscription(
               subscription.id,
               subscription.customer.toString(),
-              type === 'customer.subscription.created',
             );
 
             break;
           case 'checkout.session.completed':
             const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
+            // a função lá de _lib/manageSubscription
             await saveSubscription(
               checkoutSession.subscription.toString(),
               checkoutSession.customer.toString(),
-              true
-            )
+              true,
+            );
 
             break;
-          default: 
-            throw new Error('Unhandled event')
+          default:
+            throw new Error('Unhandled event');
         }
       } catch (err) {
-        return res.json({ error: 'webhook handled failed' })
+        return res.json({ error: 'Webkook handled failed' });
       }
     }
-    
-    res.json({ received: 'ok' });
+
+    res.json({ received: true });
   } else {
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method not allowed');

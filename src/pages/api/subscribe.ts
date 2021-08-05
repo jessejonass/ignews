@@ -1,57 +1,50 @@
+/* eslint-disable import/no-anonymous-default-export */
+
 import { NextApiRequest, NextApiResponse } from "next";
-import { query as q } from 'faunadb';
 import { getSession } from 'next-auth/client';
 import { fauna } from "../../services/fauna";
 import { stripe } from "../../services/stripe";
+import { query } from 'faunadb';
 
 type User = {
   ref: {
-    id: string;
+    id: string,
   },
   data: {
-    stripe_customer_id: string;
+    stripe_customer_id: string,
   }
 }
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  // esse método 'backend' só aceita POST
   if (req.method === 'POST') {
-    // preciso criar um customer dentro do stripe
+    const session = await getSession({ req });
 
-    // cookies para pegar o usuário logado
-    const session = await getSession({ req }); // dentro da req tem os cookies
-
-    // buscando o usuário no fauna / validar existencia
     const user = await fauna.query<User>(
-      q.Get(
-        q.Match(
-          q.Index('user_by_email'),
-          q.Casefold(session.user.email),
+      query.Get(
+        query.Match(
+          query.Index('user_by_email'),
+          query.Casefold(session.user.email)
         )
       )
     );
 
     let customerId = user.data.stripe_customer_id;
-    
-    // se o usuário ainda não tem o campo customer_id
-    // daí criar o stripeCustomer
+
     if (!customerId) {
-      // customer a ser criado no stripe
       const stripeCustomer = await stripe.customers.create({
         email: session.user.email,
-        // metadata: 
+        // metadata
       });
 
-      // atualizar o user | aqui tá o erro
       await fauna.query(
-        q.Update(
-          q.Ref(q.Collection('users'), user.ref.id),
+        query.Update(
+          query.Ref(query.Collection('users'), user.ref.id),
           {
             data: {
               stripe_customer_id: stripeCustomer.id,
             }
           }
-        ) // não consigo atualizar pelo indice, tem q ser pelo campo
+        )
       );
 
       customerId = stripeCustomer.id;
@@ -62,7 +55,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       payment_method_types: ['card'],
       billing_address_collection: 'required',
       line_items: [
-        { price: 'price_1IagBhKMEMKyzCEgCtXsf6VL', quantity: 1 }
+        { price: 'price_1JFIMQKMEMKyzCEgtQzbtfsd', quantity: 1 }
       ],
       mode: 'subscription',
       allow_promotion_codes: true,

@@ -1,56 +1,48 @@
+import { FC } from 'react';
 import { useSession, signIn } from 'next-auth/client';
 import { useRouter } from 'next/router';
 import { api } from '../../services/api';
 import { getStripeJs } from '../../services/stripe-js';
 import styles from './styles.module.scss';
+import { SubscribeButtonProps } from './types';
 
-interface SubscribeButtonProps {
-  priceId: string;
-}
-
-export function SubscribeButton({ priceId }: SubscribeButtonProps) {
-
-  // existe sessão?
+const SubscribeButton: FC<SubscribeButtonProps> = ({ priceId }) => {
   const [session] = useSession();
   const router = useRouter();
-  
+
   async function handleSubscribe() {
-    // se não existe, mandar para o auth do github
     if (!session) {
       signIn('github');
       return;
     }
 
-    // não deixar usuário se inscrever de novo
-    if (session.activeSubscription) {
+    if (!session.activeSubscription) {
       router.push('/posts');
       return;
     }
 
-    // criação e uso da checkout session
-    // https://stripe.com/docs/api/checkout/sessions
-
+    // criação da checkout session
     try {
       const response = await api.post('/subscribe');
 
       const { sessionId } = response.data;
 
-      // o stripe público
       const stripe = await getStripeJs();
 
-      await stripe.redirectToCheckout({ sessionId: sessionId });
+      await stripe.redirectToCheckout({ sessionId });
     } catch (err) {
       console.log(err);
     }
   }
 
   return (
-    <button 
-      type="button" 
-      onClick={handleSubscribe}
+    <button
       className={styles.subscribeButton}
+      onClick={handleSubscribe}
     >
       Subscribe now
     </button>
-  );
-};
+  )
+}
+
+export default SubscribeButton;
